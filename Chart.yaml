@@ -2,8 +2,8 @@ apiVersion: v2
 name: antigenic-docuseal-helm-chart
 description: Antigenic-maintained Helm chart for deploying DocuSeal on Kubernetes with external PostgreSQL, high-availability storage patterns, and configurable ingress/Gateway API/service exposure.
 type: application
-version: 0.1.0
-appVersion: "2.3.4"
+version: 0.1.1
+appVersion: "2.3.6"
 kubeVersion: ">=1.26.0-0"
 keywords:
   - docuseal

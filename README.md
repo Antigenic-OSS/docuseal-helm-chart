@@ -65,7 +65,7 @@ Install:
 ```bash
 helm upgrade --install docuseal \
   oci://ghcr.io/antigenic-oss/charts/antigenic-docuseal-helm-chart \
-  --version 0.1.0 \
+  --version <chart-version> \
   --namespace docuseal \
   --create-namespace
 ```
@@ -85,12 +85,12 @@ s3:
   accessKeyId:
     existingSecret:
       enabled: true
-      name: docuseal-s3
+      name: docuseal-secrets
       key: AWS_ACCESS_KEY_ID
   secretAccessKey:
     existingSecret:
       enabled: true
-      name: docuseal-s3
+      name: docuseal-secrets
       key: AWS_SECRET_ACCESS_KEY
 ```
 

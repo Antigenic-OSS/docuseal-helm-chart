@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: ghcr.io/antigenic-oss/charts
     chart: antigenic-docuseal-helm-chart
-    targetRevision: 0.1.0
+    targetRevision: "<chart-version>"
     helm:
       releaseName: docuseal
       values: |
@@ -22,11 +22,13 @@ spec:
           name: docuseal-secrets
 
         database:
-          url: ""
           existingSecret:
             enabled: true
             name: docuseal-secrets
             key: DATABASE_URL
+
+        general:
+          host: docuseal.example.com
 
         s3:
           enabled: true
@@ -35,12 +37,12 @@ spec:
           accessKeyId:
             existingSecret:
               enabled: true
-              name: docuseal-s3
+              name: docuseal-secrets
               key: AWS_ACCESS_KEY_ID
           secretAccessKey:
             existingSecret:
               enabled: true
-              name: docuseal-s3
+              name: docuseal-secrets
               key: AWS_SECRET_ACCESS_KEY
 
         smtp:
@@ -55,12 +57,12 @@ spec:
           username:
             existingSecret:
               enabled: true
-              name: docuseal-smtp
+              name: docuseal-secrets
               key: SMTP_USERNAME
           password:
             existingSecret:
               enabled: true
-              name: docuseal-smtp
+              name: docuseal-secrets
               key: SMTP_PASSWORD
 
         httpRoute:
