@@ -1,4 +1,4 @@
-# antigenic-docuseal-helm-chart
+# DocuSeal Helm Chart for Kubernetes
 
 <p align="center">
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/tags"><img alt="Tag" src="https://img.shields.io/github/v/tag/Antigenic-OSS/docuseal-helm-chart?sort=semver&style=flat-square"></a>
@@ -16,6 +16,9 @@
 </p>
 
 Production-focused Helm chart for deploying [DocuSeal](https://www.docuseal.com/) on Kubernetes.
+This chart targets self-hosted e-signature and document signing workloads with secure defaults, external PostgreSQL, and HA-ready storage patterns.
+
+Canonical chart name: `antigenic-docuseal-helm-chart`.
 
 Maintained by [Antigenic](https://antigenic.org).
 

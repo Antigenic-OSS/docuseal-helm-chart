@@ -1,15 +1,20 @@
 apiVersion: v2
 name: antigenic-docuseal-helm-chart
-description: Antigenic-maintained Helm chart for deploying DocuSeal on Kubernetes with external PostgreSQL, high-availability storage patterns, and configurable ingress/Gateway API/service exposure.
+description: Production-focused Helm chart for self-hosted DocuSeal on Kubernetes with external PostgreSQL, HA storage patterns, and hardened security defaults.
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: "2.3.6"
 kubeVersion: ">=1.26.0-0"
 keywords:
   - docuseal
+  - docuseal-helm-chart
   - antigenic-docuseal-helm-chart
+  - self-hosted
+  - self-hosting
+  - helm-chart
   - documents
   - document-signing
+  - e-signature
   - digital-signature
   - esignature
   - electronic-signature
@@ -39,6 +44,10 @@ annotations:
       url: https://antigenic.org
     - name: Upstream DocuSeal
       url: https://www.docuseal.com
+    - name: DocuSeal Self-hosting Requirements
+      url: https://www.docuseal.com/self-hosting/requirements
+    - name: DocuSeal Environment Variables
+      url: https://www.docuseal.com/self-hosting/environment-variables
     - name: Documentation
       url: https://github.com/Antigenic-OSS/docuseal-helm-chart/blob/main/README.md
     - name: Support
