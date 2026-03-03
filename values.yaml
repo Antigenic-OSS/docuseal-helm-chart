@@ -14,11 +14,15 @@ podAnnotations: {}
 podLabels: {}
 
 podSecurityContext:
+  fsGroup: 2000
+  fsGroupChangePolicy: OnRootMismatch
   seccompProfile:
     type: RuntimeDefault
 
 securityContext:
   runAsNonRoot: true
+  runAsUser: 2000
+  runAsGroup: 2000
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
   capabilities:
@@ -75,6 +79,7 @@ secret:
 # If env.SECRET_KEY_BASE is set, it overrides secret-based SECRET_KEY_BASE wiring.
 env:
   SECRET_KEY_BASE: ""
+  HOME: /tmp
 
 general:
   forceSsl: false
@@ -155,7 +160,8 @@ persistence:
   accessModes:
     - ReadWriteOnce
   size: 10Gi
-  mountPath: /data/docuseal
+  # DocuSeal writes runtime files to /app/tmp (for example Active Storage disk backend).
+  mountPath: /app/tmp
 
 service:
   type: ClusterIP

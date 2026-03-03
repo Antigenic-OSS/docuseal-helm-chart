@@ -150,6 +150,12 @@ This chart intentionally fails render for unsafe or ambiguous setups, including:
 - `replicaCount > 1` with `persistence.enabled=false` and no shared object storage backend (`s3/gcs/azure`)
 - missing required fields for enabled SMTP/storage providers
 
+Default security/runtime posture:
+
+- Container runs as non-root UID/GID `2000` by default (`runAsNonRoot=true`, `runAsUser=2000`, `runAsGroup=2000`).
+- Pod `fsGroup` defaults to `2000` so mounted volumes are writable by the app user.
+- Default PVC mount path is `/app/tmp`, which aligns with DocuSeal runtime disk writes.
+
 Operational note for external secret rotation:
 
 - If you rely on external secret controllers, enable `secretReloader.enabled=true` to add Stakater Reloader annotations for watched secret names.
