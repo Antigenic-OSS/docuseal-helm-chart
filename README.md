@@ -2,13 +2,17 @@
 
 <p align="center">
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/tags"><img alt="Tag" src="https://img.shields.io/github/v/tag/Antigenic-OSS/docuseal-helm-chart?sort=semver&style=flat-square"></a>
+  <a href="https://hub.docker.com/r/docuseal/docuseal/tags?name=2.3.6"><img alt="DocuSeal App Version" src="https://img.shields.io/badge/docuseal-2.3.6-informational?style=flat-square"></a>
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/chart-ci.yaml"><img alt="Chart CI" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/chart-ci.yaml?branch=main&label=chart%20ci&style=flat-square"></a>
+  <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/auto-tag-chart.yaml"><img alt="Auto Tag" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/auto-tag-chart.yaml?branch=main&label=auto%20tag&style=flat-square"></a>
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/release-chart.yaml"><img alt="Publish OCI" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/release-chart.yaml?label=publish%20oci&style=flat-square"></a>
 </p>
 <p align="center">
   <a href="https://github.com/orgs/Antigenic-OSS/packages?repo_name=docuseal-helm-chart"><img alt="GHCR" src="https://img.shields.io/badge/oci-ghcr.io%2Fantigenic--oss%2Fcharts-blue?style=flat-square"></a>
-  <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/Antigenic-OSS/docuseal-helm-chart?style=flat-square"></a>
   <a href="https://artifacthub.io/packages/search?repo=antigenic-docuseal-helm-chart"><img alt="Artifact Hub" src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/antigenic-docuseal-helm-chart&style=flat-square"></a>
+  <a href="#prerequisites"><img alt="Kubernetes >=1.26" src="https://img.shields.io/badge/kubernetes-%3E%3D1.26-326ce5?style=flat-square&logo=kubernetes&logoColor=white"></a>
+  <a href="#prerequisites"><img alt="Helm >=3.14" src="https://img.shields.io/badge/helm-%3E%3D3.14-0f1689?style=flat-square&logo=helm&logoColor=white"></a>
+  <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/Antigenic-OSS/docuseal-helm-chart?style=flat-square"></a>
 </p>
 
 Production-focused Helm chart for deploying [DocuSeal](https://www.docuseal.com/) on Kubernetes.
