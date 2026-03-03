@@ -1,0 +1,83 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: docuseal
+  namespace: argocd
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: docuseal
+  source:
+    repoURL: ghcr.io/antigenic-oss/charts
+    chart: antigenic-docuseal-helm-chart
+    targetRevision: 0.1.0
+    helm:
+      releaseName: docuseal
+      values: |
+        replicaCount: 3
+
+        secret:
+          create: false
+          name: docuseal-secrets
+
+        database:
+          url: ""
+          existingSecret:
+            enabled: true
+            name: docuseal-secrets
+            key: DATABASE_URL
+
+        s3:
+          enabled: true
+          region: us-east-1
+          attachmentsBucket: docuseal-prod
+          accessKeyId:
+            existingSecret:
+              enabled: true
+              name: docuseal-s3
+              key: AWS_ACCESS_KEY_ID
+          secretAccessKey:
+            existingSecret:
+              enabled: true
+              name: docuseal-s3
+              key: AWS_SECRET_ACCESS_KEY
+
+        smtp:
+          enabled: true
+          address: smtp.sendgrid.net
+          port: 587
+          domain: example.com
+          authentication: plain
+          from: no-reply@example.com
+          enableStarttls: true
+          sslVerify: true
+          username:
+            existingSecret:
+              enabled: true
+              name: docuseal-smtp
+              key: SMTP_USERNAME
+          password:
+            existingSecret:
+              enabled: true
+              name: docuseal-smtp
+              key: SMTP_PASSWORD
+
+        httpRoute:
+          enabled: true
+          parentRefs:
+            - name: edge
+              namespace: gateway-system
+              sectionName: https
+          hostnames:
+            - docuseal.example.com
+
+        persistence:
+          enabled: false
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

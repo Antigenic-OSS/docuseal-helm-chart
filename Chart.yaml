@@ -1,0 +1,50 @@
+apiVersion: v2
+name: antigenic-docuseal-helm-chart
+description: Antigenic-maintained Helm chart for deploying DocuSeal on Kubernetes with external PostgreSQL, high-availability storage patterns, and configurable ingress/Gateway API/service exposure.
+type: application
+version: 0.1.0
+appVersion: "2.3.4"
+kubeVersion: ">=1.26.0-0"
+keywords:
+  - docuseal
+  - antigenic-docuseal-helm-chart
+  - documents
+  - document-signing
+  - digital-signature
+  - esignature
+  - electronic-signature
+  - signatures
+  - forms
+  - kubernetes
+  - helm
+  - ingress
+  - gateway-api
+  - postgresql
+  - devsecops
+  - sre
+  - antigenic
+home: https://github.com/Antigenic-OSS/docuseal-helm-chart
+icon: https://github.com/Antigenic-OSS.png
+sources:
+  - https://github.com/Antigenic-OSS/docuseal-helm-chart
+  - https://github.com/docusealco/docuseal
+annotations:
+  artifacthub.io/license: MIT
+  artifacthub.io/category: security
+  artifacthub.io/alternativeName: docuseal
+  artifacthub.io/links: |
+    - name: Source
+      url: https://github.com/Antigenic-OSS/docuseal-helm-chart
+    - name: Website
+      url: https://antigenic.org
+    - name: Upstream DocuSeal
+      url: https://www.docuseal.com
+    - name: Documentation
+      url: https://github.com/Antigenic-OSS/docuseal-helm-chart/blob/main/README.md
+    - name: Support
+      url: https://github.com/Antigenic-OSS/docuseal-helm-chart/blob/main/SUPPORT.md
+  artifacthub.io/containsSecurityUpdates: "false"
+maintainers:
+  - name: Antigenic Research Institute
+    email: oss@antigenic.org
+    url: https://antigenic.org

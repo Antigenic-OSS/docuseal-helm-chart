@@ -1,0 +1,22 @@
+# OS/editor
+.DS_Store
+*.swp
+*.swo
+*.tmp
+.idea/
+.vscode/
+
+# Helm/k8s local artifacts
+*.tgz
+charts/
+Chart.lock
+*.bak
+*.orig
+
+# Local environment files
+.env
+.env.*
+
+# Tool/cache directories
+.tmp/
+tmp/

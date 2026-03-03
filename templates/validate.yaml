@@ -1,0 +1,170 @@
+{{- if and .Values.ingress.enabled .Values.httpRoute.enabled -}}
+{{- fail "Only one of ingress.enabled or httpRoute.enabled can be true." -}}
+{{- end -}}
+{{- if and .Values.ingress.enabled (eq (len .Values.ingress.hosts) 0) -}}
+{{- fail "ingress.hosts must include at least one host when ingress.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.httpRoute.enabled (eq (len .Values.httpRoute.hostnames) 0) -}}
+{{- fail "httpRoute.hostnames must include at least one hostname when httpRoute.enabled is true." -}}
+{{- end -}}
+{{- if and .Values.database.url .Values.database.existingSecret.enabled -}}
+{{- fail "Only one DATABASE_URL source can be selected: database.url OR database.existingSecret.enabled." -}}
+{{- end -}}
+{{- if .Values.env.DATABASE_URL -}}
+{{- fail "env.DATABASE_URL is not supported. Use database.url, database.existingSecret, or secret.data.DATABASE_URL." -}}
+{{- end -}}
+{{- if and .Values.database.existingSecret.enabled (not .Values.database.existingSecret.name) -}}
+{{- fail "database.existingSecret.name is required when database.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.database.existingSecret.enabled (not .Values.database.existingSecret.key) -}}
+{{- fail "database.existingSecret.key is required when database.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and (not .Values.database.url) (not .Values.database.existingSecret.enabled) -}}
+  {{- if .Values.secret.create -}}
+    {{- if not .Values.secret.data.DATABASE_URL -}}
+    {{- fail "secret.data.DATABASE_URL is required when using secret-based DATABASE_URL with secret.create=true." -}}
+    {{- else if contains "change-me" .Values.secret.data.DATABASE_URL -}}
+    {{- fail "secret.data.DATABASE_URL uses an insecure placeholder. Set a real database URL." -}}
+    {{- end -}}
+  {{- else if not .Values.secret.name -}}
+  {{- fail "Set secret.name to an existing secret that contains DATABASE_URL, or enable secret.create." -}}
+  {{- end -}}
+{{- end -}}
+{{- if not .Values.env.SECRET_KEY_BASE -}}
+  {{- if .Values.secret.create -}}
+    {{- if not .Values.secret.data.SECRET_KEY_BASE -}}
+    {{- fail "Provide env.SECRET_KEY_BASE or secret.data.SECRET_KEY_BASE." -}}
+    {{- else if eq .Values.secret.data.SECRET_KEY_BASE "change-me" -}}
+    {{- fail "secret.data.SECRET_KEY_BASE uses an insecure placeholder. Set a strong random value." -}}
+    {{- end -}}
+  {{- else if not .Values.secret.name -}}
+  {{- fail "Set secret.name to an existing secret that contains SECRET_KEY_BASE, or set env.SECRET_KEY_BASE." -}}
+  {{- end -}}
+{{- else if eq .Values.env.SECRET_KEY_BASE "change-me" -}}
+{{- fail "env.SECRET_KEY_BASE uses an insecure placeholder. Set a strong random value." -}}
+{{- end -}}
+{{- $hasRWX := false -}}
+{{- range $mode := .Values.persistence.accessModes -}}
+  {{- if eq $mode "ReadWriteMany" -}}
+    {{- $hasRWX = true -}}
+  {{- end -}}
+{{- end -}}
+{{- if and (gt (int .Values.replicaCount) 1) .Values.persistence.enabled (not $hasRWX) -}}
+{{- fail "replicaCount>1 with persistence.enabled requires ReadWriteMany access mode (shared storage), or disable persistence." -}}
+{{- end -}}
+{{- if and .Values.smtp.enabled (not .Values.smtp.address) -}}
+{{- fail "smtp.address is required when smtp.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.smtp.enabled (not .Values.smtp.domain) -}}
+{{- fail "smtp.domain is required when smtp.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.smtp.enabled (not .Values.smtp.from) -}}
+{{- fail "smtp.from is required when smtp.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.smtp.enabled (not (or (eq .Values.smtp.authentication "plain") (eq .Values.smtp.authentication "login"))) -}}
+{{- fail "smtp.authentication must be one of: plain, login." -}}
+{{- end -}}
+{{- if and .Values.smtp.username.value .Values.smtp.username.existingSecret.enabled -}}
+{{- fail "Use only one SMTP_USERNAME source: smtp.username.value or smtp.username.existingSecret." -}}
+{{- end -}}
+{{- if and .Values.smtp.password.value .Values.smtp.password.existingSecret.enabled -}}
+{{- fail "Use only one SMTP_PASSWORD source: smtp.password.value or smtp.password.existingSecret." -}}
+{{- end -}}
+{{- if and .Values.smtp.enabled (not (or .Values.smtp.username.value .Values.smtp.username.existingSecret.enabled)) -}}
+{{- fail "smtp.username.value or smtp.username.existingSecret is required when smtp.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.smtp.enabled (not (or .Values.smtp.password.value .Values.smtp.password.existingSecret.enabled)) -}}
+{{- fail "smtp.password.value or smtp.password.existingSecret is required when smtp.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.smtp.username.existingSecret.enabled (not .Values.smtp.username.existingSecret.name) -}}
+{{- fail "smtp.username.existingSecret.name is required when smtp.username.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.smtp.username.existingSecret.enabled (not .Values.smtp.username.existingSecret.key) -}}
+{{- fail "smtp.username.existingSecret.key is required when smtp.username.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.smtp.password.existingSecret.enabled (not .Values.smtp.password.existingSecret.name) -}}
+{{- fail "smtp.password.existingSecret.name is required when smtp.password.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.smtp.password.existingSecret.enabled (not .Values.smtp.password.existingSecret.key) -}}
+{{- fail "smtp.password.existingSecret.key is required when smtp.password.existingSecret.enabled=true." -}}
+{{- end -}}
+
+{{- $storageBackends := 0 -}}
+{{- if .Values.s3.enabled }}{{- $storageBackends = add1 $storageBackends -}}{{- end -}}
+{{- if .Values.gcs.enabled }}{{- $storageBackends = add1 $storageBackends -}}{{- end -}}
+{{- if .Values.azure.enabled }}{{- $storageBackends = add1 $storageBackends -}}{{- end -}}
+{{- if gt $storageBackends 1 -}}
+{{- fail "Only one object storage backend can be enabled at a time: s3, gcs, or azure." -}}
+{{- end -}}
+{{- if and (gt (int .Values.replicaCount) 1) (not .Values.persistence.enabled) (eq $storageBackends 0) -}}
+{{- fail "replicaCount>1 with persistence.enabled=false requires one shared object storage backend: s3, gcs, or azure." -}}
+{{- end -}}
+
+{{- if and .Values.s3.enabled (not .Values.s3.region) -}}
+{{- fail "s3.region is required when s3.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.s3.enabled (not .Values.s3.attachmentsBucket) -}}
+{{- fail "s3.attachmentsBucket is required when s3.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.s3.accessKeyId.value .Values.s3.accessKeyId.existingSecret.enabled -}}
+{{- fail "Use only one AWS_ACCESS_KEY_ID source: s3.accessKeyId.value or s3.accessKeyId.existingSecret." -}}
+{{- end -}}
+{{- if and .Values.s3.secretAccessKey.value .Values.s3.secretAccessKey.existingSecret.enabled -}}
+{{- fail "Use only one AWS_SECRET_ACCESS_KEY source: s3.secretAccessKey.value or s3.secretAccessKey.existingSecret." -}}
+{{- end -}}
+{{- if and .Values.s3.enabled (not (or .Values.s3.accessKeyId.value .Values.s3.accessKeyId.existingSecret.enabled)) -}}
+{{- fail "s3.accessKeyId.value or s3.accessKeyId.existingSecret is required when s3.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.s3.enabled (not (or .Values.s3.secretAccessKey.value .Values.s3.secretAccessKey.existingSecret.enabled)) -}}
+{{- fail "s3.secretAccessKey.value or s3.secretAccessKey.existingSecret is required when s3.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.s3.accessKeyId.existingSecret.enabled (not .Values.s3.accessKeyId.existingSecret.name) -}}
+{{- fail "s3.accessKeyId.existingSecret.name is required when s3.accessKeyId.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.s3.accessKeyId.existingSecret.enabled (not .Values.s3.accessKeyId.existingSecret.key) -}}
+{{- fail "s3.accessKeyId.existingSecret.key is required when s3.accessKeyId.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.s3.secretAccessKey.existingSecret.enabled (not .Values.s3.secretAccessKey.existingSecret.name) -}}
+{{- fail "s3.secretAccessKey.existingSecret.name is required when s3.secretAccessKey.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.s3.secretAccessKey.existingSecret.enabled (not .Values.s3.secretAccessKey.existingSecret.key) -}}
+{{- fail "s3.secretAccessKey.existingSecret.key is required when s3.secretAccessKey.existingSecret.enabled=true." -}}
+{{- end -}}
+
+{{- if and .Values.gcs.enabled (not .Values.gcs.project) -}}
+{{- fail "gcs.project is required when gcs.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.gcs.enabled (not .Values.gcs.bucket) -}}
+{{- fail "gcs.bucket is required when gcs.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.gcs.credentials.value .Values.gcs.credentials.existingSecret.enabled -}}
+{{- fail "Use only one GCS_CREDENTIALS source: gcs.credentials.value or gcs.credentials.existingSecret." -}}
+{{- end -}}
+{{- if and .Values.gcs.enabled (not (or .Values.gcs.credentials.value .Values.gcs.credentials.existingSecret.enabled)) -}}
+{{- fail "gcs.credentials.value or gcs.credentials.existingSecret is required when gcs.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.gcs.credentials.existingSecret.enabled (not .Values.gcs.credentials.existingSecret.name) -}}
+{{- fail "gcs.credentials.existingSecret.name is required when gcs.credentials.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.gcs.credentials.existingSecret.enabled (not .Values.gcs.credentials.existingSecret.key) -}}
+{{- fail "gcs.credentials.existingSecret.key is required when gcs.credentials.existingSecret.enabled=true." -}}
+{{- end -}}
+
+{{- if and .Values.azure.enabled (not .Values.azure.storageAccountName) -}}
+{{- fail "azure.storageAccountName is required when azure.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.azure.enabled (not .Values.azure.container) -}}
+{{- fail "azure.container is required when azure.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.azure.storageAccessKey.value .Values.azure.storageAccessKey.existingSecret.enabled -}}
+{{- fail "Use only one AZURE_STORAGE_ACCESS_KEY source: azure.storageAccessKey.value or azure.storageAccessKey.existingSecret." -}}
+{{- end -}}
+{{- if and .Values.azure.enabled (not (or .Values.azure.storageAccessKey.value .Values.azure.storageAccessKey.existingSecret.enabled)) -}}
+{{- fail "azure.storageAccessKey.value or azure.storageAccessKey.existingSecret is required when azure.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.azure.storageAccessKey.existingSecret.enabled (not .Values.azure.storageAccessKey.existingSecret.name) -}}
+{{- fail "azure.storageAccessKey.existingSecret.name is required when azure.storageAccessKey.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.azure.storageAccessKey.existingSecret.enabled (not .Values.azure.storageAccessKey.existingSecret.key) -}}
+{{- fail "azure.storageAccessKey.existingSecret.key is required when azure.storageAccessKey.existingSecret.enabled=true." -}}
+{{- end -}}

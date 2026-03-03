@@ -1,0 +1,66 @@
+name: auto-tag-chart
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Compare chart versions and push tag
+        env:
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          # Skip safely on branch creation or unknown previous commit.
+          if [ -z "${BEFORE_SHA}" ] || [ "${BEFORE_SHA}" = "0000000000000000000000000000000000000000" ]; then
+            echo "No valid before SHA; skipping tag creation."
+            exit 0
+          fi
+
+          if ! git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            echo "before SHA is not available in this checkout; skipping tag creation."
+            exit 0
+          fi
+
+          BEFORE_VERSION="$(git show "${BEFORE_SHA}:Chart.yaml" 2>/dev/null | sed -n 's/^version:[[:space:]]*//p' | head -n1 | tr -d '\"')"
+          CURRENT_VERSION="$(sed -n 's/^version:[[:space:]]*//p' Chart.yaml | head -n1 | tr -d '\"')"
+
+          if [ -z "${BEFORE_VERSION}" ] || [ -z "${CURRENT_VERSION}" ]; then
+            echo "Unable to determine chart version(s); skipping tag creation."
+            exit 0
+          fi
+
+          if [ "${BEFORE_VERSION}" = "${CURRENT_VERSION}" ]; then
+            echo "Chart version unchanged (${CURRENT_VERSION}); skipping tag creation."
+            exit 0
+          fi
+
+          TAG="v${CURRENT_VERSION}"
+
+          git fetch --tags --force origin
+
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+            echo "Tag ${TAG} already exists; skipping tag creation."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin "refs/tags/${TAG}"
+
+          echo "Created and pushed tag ${TAG}"

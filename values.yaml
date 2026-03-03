@@ -1,0 +1,245 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: docuseal/docuseal
+  tag: 2.3.4
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+
+replicaCount: 1
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+  automountServiceAccountToken: false
+
+strategy:
+  type: RollingUpdate
+
+resources: {}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+topologySpreadConstraints: []
+
+pdb:
+  enabled: false
+  minAvailable: 1
+
+terminationGracePeriodSeconds: 30
+
+# DATABASE_URL source selection:
+# 1) Set database.url directly (plain-text in values)
+# 2) Set database.existingSecret.enabled=true and provide secret ref
+# 3) Leave both unset and provide DATABASE_URL in `secret` (chart-managed or pre-existing)
+# Default is mode (2) with an expected pre-created secret.
+database:
+  url: ""
+  existingSecret:
+    enabled: true
+    name: docuseal-secrets
+    key: DATABASE_URL
+
+# App secret values. If create=false, this chart expects the secret to already exist.
+# The same secret is used for SECRET_KEY_BASE and (unless overridden) DATABASE_URL.
+# For secure defaults, these are intentionally empty and required by validation when in use.
+secret:
+  create: false
+  name: docuseal-secrets
+  annotations: {}
+  data:
+    DATABASE_URL: ""
+    SECRET_KEY_BASE: ""
+
+# Additional app env vars.
+# If env.SECRET_KEY_BASE is set, it overrides secret-based SECRET_KEY_BASE wiring.
+env:
+  SECRET_KEY_BASE: ""
+
+general:
+  forceSsl: false
+  host: ""
+
+smtp:
+  enabled: false
+  address: ""
+  port: 587
+  domain: ""
+  authentication: plain
+  from: ""
+  enableStarttls: true
+  sslVerify: true
+  username:
+    value: ""
+    existingSecret:
+      enabled: false
+      name: ""
+      key: SMTP_USERNAME
+  password:
+    value: ""
+    existingSecret:
+      enabled: false
+      name: ""
+      key: SMTP_PASSWORD
+
+s3:
+  enabled: false
+  region: ""
+  attachmentsBucket: ""
+  accessKeyId:
+    value: ""
+    existingSecret:
+      enabled: false
+      name: ""
+      key: AWS_ACCESS_KEY_ID
+  secretAccessKey:
+    value: ""
+    existingSecret:
+      enabled: false
+      name: ""
+      key: AWS_SECRET_ACCESS_KEY
+
+gcs:
+  enabled: false
+  project: ""
+  bucket: ""
+  credentials:
+    value: ""
+    existingSecret:
+      enabled: false
+      name: ""
+      key: GCS_CREDENTIALS
+
+azure:
+  enabled: false
+  storageAccountName: ""
+  container: ""
+  storageAccessKey:
+    value: ""
+    existingSecret:
+      enabled: false
+      name: ""
+      key: AZURE_STORAGE_ACCESS_KEY
+
+extraEnv: []
+extraEnvFrom: []
+
+# If Stakater Reloader is installed, this can trigger rolling updates on external secret changes.
+secretReloader:
+  enabled: false
+
+persistence:
+  # Set to false when using external object storage (s3/gcs/azure) for HA/stateless pods.
+  enabled: true
+  storageClass: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  mountPath: /data/docuseal
+
+service:
+  type: ClusterIP
+  annotations: {}
+  externalTrafficPolicy: Cluster
+  port: 3000
+  targetPort: http
+
+networkPolicy:
+  enabled: false
+  ingress:
+    allowSameNamespace: true
+    allowInternet: false
+    internetCidrs:
+      - 0.0.0.0/0
+      - ::/0
+    additionalFrom: []
+  egress:
+    # Enable to allow DNS resolution for postgres/service discovery.
+    allowDns: false
+    # Optional destination selectors for DNS (for example, kube-dns/coredns pods).
+    # If empty, DNS egress is allowed to any destination on port 53.
+    dnsTo: []
+    allowInternet: false
+    internetCidrs:
+      - 0.0.0.0/0
+      - ::/0
+    additionalTo: []
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: docuseal.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+httpRoute:
+  enabled: false
+  annotations: {}
+  hostnames:
+    - docuseal.example.com
+  parentRefs:
+    - name: gateway
+      namespace: default
+      sectionName: https
+  matches:
+    - path:
+        type: PathPrefix
+        value: /
+
+livenessProbe:
+  httpGet:
+    path: /up
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  httpGet:
+    path: /up
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+startupProbe:
+  httpGet:
+    path: /up
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+testConnection:
+  enabled: true
+  image:
+    repository: busybox
+    tag: "1.37"
+    pullPolicy: IfNotPresent
