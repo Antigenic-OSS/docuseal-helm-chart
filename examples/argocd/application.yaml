@@ -16,17 +16,6 @@ spec:
       releaseName: docuseal
       values: |
         replicaCount: 3
-
-        secret:
-          create: false
-          name: docuseal-secrets
-
-        database:
-          existingSecret:
-            enabled: true
-            name: docuseal-secrets
-            key: DATABASE_URL
-
         general:
           host: docuseal.example.com
 
