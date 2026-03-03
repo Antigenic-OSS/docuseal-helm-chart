@@ -7,6 +7,7 @@
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/auto-tag-chart.yaml"><img alt="Auto Tag" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/auto-tag-chart.yaml?branch=main&label=auto%20tag&style=flat-square"></a>
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/release-chart.yaml"><img alt="Publish OCI" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/release-chart.yaml?label=publish%20oci&style=flat-square"></a>
 </p>
+
 <p align="center">
   <a href="https://github.com/orgs/Antigenic-OSS/packages?repo_name=docuseal-helm-chart"><img alt="GHCR" src="https://img.shields.io/badge/oci-ghcr.io%2Fantigenic--oss%2Fcharts-blue?style=flat-square"></a>
   <a href="https://artifacthub.io/packages/search?repo=antigenic-docuseal-helm-chart"><img alt="Artifact Hub" src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/antigenic-docuseal-helm-chart&style=flat-square"></a>
