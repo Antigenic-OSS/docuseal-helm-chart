@@ -1,11 +1,15 @@
 # antigenic-docuseal-helm-chart
 
-[![Tag](https://img.shields.io/github/v/tag/Antigenic-OSS/docuseal-helm-chart?sort=semver)](https://github.com/Antigenic-OSS/docuseal-helm-chart/tags)
-[![Chart CI](https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/chart-ci.yaml?label=chart%20ci)](https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/chart-ci.yaml)
-[![Publish OCI](https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/release-chart.yaml?label=publish%20oci)](https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/release-chart.yaml)
-[![GHCR](https://img.shields.io/badge/oci-ghcr.io%2Fantigenic--oss%2Fcharts-blue)](https://github.com/orgs/Antigenic-OSS/packages?repo_name=docuseal-helm-chart)
-[![License](https://img.shields.io/github/license/Antigenic-OSS/docuseal-helm-chart)](https://github.com/Antigenic-OSS/docuseal-helm-chart/blob/main/LICENSE)
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/antigenic-docuseal-helm-chart)](https://artifacthub.io/packages/search?repo=antigenic-docuseal-helm-chart)
+<p align="center">
+  <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/tags"><img alt="Tag" src="https://img.shields.io/github/v/tag/Antigenic-OSS/docuseal-helm-chart?sort=semver&style=flat-square"></a>
+  <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/chart-ci.yaml"><img alt="Chart CI" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/chart-ci.yaml?branch=main&label=chart%20ci&style=flat-square"></a>
+  <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/release-chart.yaml"><img alt="Publish OCI" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/release-chart.yaml?label=publish%20oci&style=flat-square"></a>
+</p>
+<p align="center">
+  <a href="https://github.com/orgs/Antigenic-OSS/packages?repo_name=docuseal-helm-chart"><img alt="GHCR" src="https://img.shields.io/badge/oci-ghcr.io%2Fantigenic--oss%2Fcharts-blue?style=flat-square"></a>
+  <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/github/license/Antigenic-OSS/docuseal-helm-chart?style=flat-square"></a>
+  <a href="https://artifacthub.io/packages/search?repo=antigenic-docuseal-helm-chart"><img alt="Artifact Hub" src="https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/antigenic-docuseal-helm-chart&style=flat-square"></a>
+</p>
 
 Production-focused Helm chart for deploying [DocuSeal](https://www.docuseal.com/) on Kubernetes.
 
