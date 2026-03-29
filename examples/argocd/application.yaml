@@ -65,6 +65,11 @@ spec:
 
         persistence:
           enabled: false
+        redis:
+          existingSecret:
+            enabled: true
+            name: docuseal-secrets
+            key: REDIS_URL
   syncPolicy:
     automated:
       prune: true

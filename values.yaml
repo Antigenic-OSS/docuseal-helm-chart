@@ -3,7 +3,7 @@ fullnameOverride: ""
 
 image:
   repository: docuseal/docuseal
-  tag: 2.3.6
+  tag: 2.4.1
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []
@@ -73,6 +73,7 @@ secret:
   annotations: {}
   data:
     DATABASE_URL: ""
+    REDIS_URL: ""
     SECRET_KEY_BASE: ""
 
 # Additional app env vars.
@@ -80,6 +81,13 @@ secret:
 env:
   SECRET_KEY_BASE: ""
   HOME: /tmp
+
+redis:
+  url: ""
+  existingSecret:
+    enabled: false
+    name: docuseal-secrets
+    key: REDIS_URL
 
 general:
   forceSsl: false
@@ -154,14 +162,15 @@ secretReloader:
   enabled: false
 
 persistence:
-  # Set to false when using external object storage (s3/gcs/azure) for HA/stateless pods.
+  # DocuSeal persists runtime state under WORKDIR (/data/docuseal by default), including
+  # local disk attachments and the embedded Redis dump when REDIS_URL is not set.
+  # Only disable this when using external object storage and an external Redis via env.REDIS_URL.
   enabled: true
   storageClass: ""
   accessModes:
     - ReadWriteOnce
   size: 10Gi
-  # DocuSeal writes runtime files to /app/tmp (for example Active Storage disk backend).
-  mountPath: /app/tmp
+  mountPath: /data/docuseal
 
 service:
   type: ClusterIP

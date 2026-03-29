@@ -1,5 +1,5 @@
 {{- $reloadSecrets := list -}}
-{{- $usesPrimarySecret := or (and (not .Values.database.url) (not .Values.database.existingSecret.enabled)) (not .Values.env.SECRET_KEY_BASE) -}}
+{{- $usesPrimarySecret := or (and (not .Values.database.url) (not .Values.database.existingSecret.enabled)) (not .Values.env.SECRET_KEY_BASE) (and (not .Values.redis.url) (not .Values.redis.existingSecret.enabled) .Values.secret.create .Values.secret.data.REDIS_URL) -}}
 {{- if and $usesPrimarySecret .Values.secret.create -}}
 {{- $reloadSecrets = append $reloadSecrets (include "docuseal.secretName" .) -}}
 {{- else if and $usesPrimarySecret .Values.secret.name -}}
@@ -7,6 +7,9 @@
 {{- end -}}
 {{- if and .Values.database.existingSecret.enabled .Values.database.existingSecret.name -}}
 {{- $reloadSecrets = append $reloadSecrets .Values.database.existingSecret.name -}}
+{{- end -}}
+{{- if and .Values.redis.existingSecret.enabled .Values.redis.existingSecret.name -}}
+{{- $reloadSecrets = append $reloadSecrets .Values.redis.existingSecret.name -}}
 {{- end -}}
 {{- if and .Values.smtp.enabled .Values.smtp.username.existingSecret.enabled .Values.smtp.username.existingSecret.name -}}
 {{- $reloadSecrets = append $reloadSecrets .Values.smtp.username.existingSecret.name -}}
@@ -100,6 +103,22 @@ spec:
                   name: {{ include "docuseal.secretName" . }}
                   key: DATABASE_URL
             {{- end }}
+            {{- if .Values.redis.url }}
+            - name: REDIS_URL
+              value: {{ .Values.redis.url | quote }}
+            {{- else if .Values.redis.existingSecret.enabled }}
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.redis.existingSecret.name | quote }}
+                  key: {{ .Values.redis.existingSecret.key | quote }}
+            {{- else if and .Values.secret.create .Values.secret.data.REDIS_URL }}
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "docuseal.secretName" . }}
+                  key: REDIS_URL
+            {{- end }}
             {{- if .Values.env.SECRET_KEY_BASE }}
             - name: SECRET_KEY_BASE
               value: {{ .Values.env.SECRET_KEY_BASE | quote }}
@@ -157,7 +176,7 @@ spec:
             {{ include "docuseal.envValueOrSecret" (dict "name" "AZURE_STORAGE_ACCESS_KEY" "value" .Values.azure.storageAccessKey.value "secret" .Values.azure.storageAccessKey.existingSecret) | nindent 12 }}
             {{- end }}
             {{- range $key, $value := .Values.env }}
-            {{- if and (ne $key "SECRET_KEY_BASE") (ne $key "DATABASE_URL") (ne $key "FORCE_SSL") (ne $key "HOST") (ne $key "SMTP_USERNAME") (ne $key "SMTP_ADDRESS") (ne $key "SMTP_PORT") (ne $key "SMTP_DOMAIN") (ne $key "SMTP_PASSWORD") (ne $key "SMTP_AUTHENTICATION") (ne $key "SMTP_FROM") (ne $key "SMTP_ENABLE_STARTTLS") (ne $key "SMTP_SSL_VERIFY") (ne $key "AWS_ACCESS_KEY_ID") (ne $key "AWS_SECRET_ACCESS_KEY") (ne $key "AWS_REGION") (ne $key "S3_ATTACHMENTS_BUCKET") (ne $key "GCS_CREDENTIALS") (ne $key "GCS_PROJECT") (ne $key "GCS_BUCKET") (ne $key "AZURE_STORAGE_ACCOUNT_NAME") (ne $key "AZURE_STORAGE_ACCESS_KEY") (ne $key "AZURE_CONTAINER") }}
+            {{- if and (ne $key "SECRET_KEY_BASE") (ne $key "DATABASE_URL") (ne $key "REDIS_URL") (ne $key "FORCE_SSL") (ne $key "HOST") (ne $key "SMTP_USERNAME") (ne $key "SMTP_ADDRESS") (ne $key "SMTP_PORT") (ne $key "SMTP_DOMAIN") (ne $key "SMTP_PASSWORD") (ne $key "SMTP_AUTHENTICATION") (ne $key "SMTP_FROM") (ne $key "SMTP_ENABLE_STARTTLS") (ne $key "SMTP_SSL_VERIFY") (ne $key "AWS_ACCESS_KEY_ID") (ne $key "AWS_SECRET_ACCESS_KEY") (ne $key "AWS_REGION") (ne $key "S3_ATTACHMENTS_BUCKET") (ne $key "GCS_CREDENTIALS") (ne $key "GCS_PROJECT") (ne $key "GCS_BUCKET") (ne $key "AZURE_STORAGE_ACCOUNT_NAME") (ne $key "AZURE_STORAGE_ACCESS_KEY") (ne $key "AZURE_CONTAINER") }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}

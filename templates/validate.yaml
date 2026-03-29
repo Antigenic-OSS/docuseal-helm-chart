@@ -13,6 +13,9 @@
 {{- if .Values.env.DATABASE_URL -}}
 {{- fail "env.DATABASE_URL is not supported. Use database.url, database.existingSecret, or secret.data.DATABASE_URL." -}}
 {{- end -}}
+{{- if .Values.env.REDIS_URL -}}
+{{- fail "env.REDIS_URL is not supported. Use redis.url, redis.existingSecret, or secret.data.REDIS_URL." -}}
+{{- end -}}
 {{- if and .Values.database.existingSecret.enabled (not .Values.database.existingSecret.name) -}}
 {{- fail "database.existingSecret.name is required when database.existingSecret.enabled=true." -}}
 {{- end -}}
@@ -42,6 +45,18 @@
   {{- end -}}
 {{- else if eq .Values.env.SECRET_KEY_BASE "change-me" -}}
 {{- fail "env.SECRET_KEY_BASE uses an insecure placeholder. Set a strong random value." -}}
+{{- end -}}
+{{- if and .Values.redis.url .Values.redis.existingSecret.enabled -}}
+{{- fail "Only one REDIS_URL source can be selected: redis.url OR redis.existingSecret.enabled." -}}
+{{- end -}}
+{{- if and .Values.redis.existingSecret.enabled (not .Values.redis.existingSecret.name) -}}
+{{- fail "redis.existingSecret.name is required when redis.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.redis.existingSecret.enabled (not .Values.redis.existingSecret.key) -}}
+{{- fail "redis.existingSecret.key is required when redis.existingSecret.enabled=true." -}}
+{{- end -}}
+{{- if and .Values.secret.create .Values.secret.data.REDIS_URL (contains "change-me" .Values.secret.data.REDIS_URL) -}}
+{{- fail "secret.data.REDIS_URL uses an insecure placeholder. Set a real Redis URL." -}}
 {{- end -}}
 {{- $hasRWX := false -}}
 {{- range $mode := .Values.persistence.accessModes -}}
@@ -96,8 +111,11 @@
 {{- if gt $storageBackends 1 -}}
 {{- fail "Only one object storage backend can be enabled at a time: s3, gcs, or azure." -}}
 {{- end -}}
-{{- if and (gt (int .Values.replicaCount) 1) (not .Values.persistence.enabled) (eq $storageBackends 0) -}}
-{{- fail "replicaCount>1 with persistence.enabled=false requires one shared object storage backend: s3, gcs, or azure." -}}
+{{- if and (not .Values.persistence.enabled) (eq $storageBackends 0) -}}
+{{- fail "persistence.enabled=false requires one object storage backend: s3, gcs, or azure." -}}
+{{- end -}}
+{{- if and (not .Values.persistence.enabled) (not (or .Values.redis.url .Values.redis.existingSecret.enabled (and .Values.secret.create .Values.secret.data.REDIS_URL))) -}}
+{{- fail "persistence.enabled=false requires REDIS_URL via redis.url, redis.existingSecret, or secret.data.REDIS_URL because DocuSeal otherwise embeds Redis and persists it under WORKDIR." -}}
 {{- end -}}
 
 {{- if and .Values.s3.enabled (not .Values.s3.region) -}}

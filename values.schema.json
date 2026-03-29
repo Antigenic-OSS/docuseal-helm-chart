@@ -47,6 +47,7 @@
           "additionalProperties": { "type": "string" },
           "properties": {
             "DATABASE_URL": { "type": "string" },
+            "REDIS_URL": { "type": "string" },
             "SECRET_KEY_BASE": { "type": "string" }
           }
         }
@@ -56,6 +57,22 @@
     "env": {
       "type": "object",
       "additionalProperties": { "type": "string" }
+    },
+    "redis": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "url": { "type": "string" },
+        "existingSecret": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "name": { "type": "string" },
+            "key": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
     },
     "secretReloader": {
       "type": "object",

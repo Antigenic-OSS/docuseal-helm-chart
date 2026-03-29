@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/tags"><img alt="Tag" src="https://img.shields.io/github/v/tag/Antigenic-OSS/docuseal-helm-chart?sort=semver&style=flat-square"></a>
-  <a href="https://hub.docker.com/r/docuseal/docuseal/tags?name=2.3.6"><img alt="DocuSeal App Version" src="https://img.shields.io/badge/docuseal-2.3.6-informational?style=flat-square"></a>
+  <a href="https://hub.docker.com/r/docuseal/docuseal/tags?name=2.4.1"><img alt="DocuSeal App Version" src="https://img.shields.io/badge/docuseal-2.4.1-informational?style=flat-square"></a>
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/chart-ci.yaml"><img alt="Chart CI" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/chart-ci.yaml?branch=main&label=chart%20ci&style=flat-square"></a>
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/auto-tag-chart.yaml"><img alt="Auto Tag" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/auto-tag-chart.yaml?branch=main&label=auto%20tag&style=flat-square"></a>
   <a href="https://github.com/Antigenic-OSS/docuseal-helm-chart/actions/workflows/release-chart.yaml"><img alt="Publish OCI" src="https://img.shields.io/github/actions/workflow/status/Antigenic-OSS/docuseal-helm-chart/release-chart.yaml?label=publish%20oci&style=flat-square"></a>
@@ -17,7 +17,7 @@
 </p>
 
 Production-focused Helm chart for deploying [DocuSeal](https://www.docuseal.com/) on Kubernetes.
-This chart targets self-hosted e-signature and document signing workloads with secure defaults, external PostgreSQL, and HA-ready storage patterns.
+This chart targets self-hosted e-signature and document signing workloads with secure defaults, external PostgreSQL, and storage semantics that match the upstream container.
 
 Canonical chart name: `antigenic-docuseal-helm-chart`.
 
@@ -36,16 +36,17 @@ Maintained by [Antigenic](https://antigenic.org).
 
 ## Storage Strategy (Important)
 
-DocuSeal needs shared document storage. PostgreSQL alone does not store all document files.
+DocuSeal needs persistent runtime storage. PostgreSQL alone does not store all document files, and the upstream container also embeds Redis locally unless `REDIS_URL` is provided.
 
-| Strategy | persistence.enabled | Object storage (S3/GCS/Azure) | HA readiness |
-|---|---:|---:|---|
-| Local PV | true | false | Single replica by default; multi-replica requires RWX |
-| Stateless + S3 | false | true | Recommended for HA |
-| Stateless + GCS | false | true | Recommended for HA |
-| Stateless + Azure Blob | false | true | Recommended for HA |
+| Strategy | persistence.enabled | External Redis | Object storage (S3/GCS/Azure) | HA readiness |
+|---|---:|---:|---:|---|
+| Local PV | true | false | false | Single replica by default; multi-replica requires RWX |
+| PVC + S3 | true | false | true | Recommended baseline for production |
+| PVC + GCS | true | false | true | Recommended baseline for production |
+| PVC + Azure Blob | true | false | true | Recommended baseline for production |
+| External Redis + S3/GCS/Azure | false | true | true | Advanced stateless mode |
 
-If `s3.enabled=true` (or `gcs.enabled=true`, `azure.enabled=true`), running without PVC is valid and usually preferred for scalable HA.
+If `persistence.enabled=false`, this chart requires both external object storage and `REDIS_URL`. Without `REDIS_URL`, DocuSeal embeds Redis and writes its dump under `WORKDIR` (`/data/docuseal` upstream).
 
 ## Prerequisites
 
@@ -55,6 +56,7 @@ If `s3.enabled=true` (or `gcs.enabled=true`, `azure.enabled=true`), running with
 - A Kubernetes Secret containing at least:
   - `DATABASE_URL`
   - `SECRET_KEY_BASE`
+  - `REDIS_URL` if you plan to disable the PVC
 
 Generate `SECRET_KEY_BASE` with:
 
@@ -82,13 +84,19 @@ helm upgrade --install docuseal \
   --create-namespace
 ```
 
-## HA Example: S3 Without PVC
+## Advanced Example: External Redis + S3 Without PVC
 
 ```yaml
 replicaCount: 3
 
 persistence:
   enabled: false
+
+redis:
+  existingSecret:
+    enabled: true
+    name: docuseal-secrets
+    key: REDIS_URL
 
 s3:
   enabled: true
@@ -115,9 +123,16 @@ s3:
   - `database.existingSecret.*`
   - `secret.data.DATABASE_URL`
   - Security note: `database.url` is plaintext in rendered manifests and Helm release history. Prefer secret-backed modes for production.
+- `REDIS_URL`: use one source only:
+  - `redis.url`
+  - `redis.existingSecret.*`
+  - `secret.data.REDIS_URL`
 - `SECRET_KEY_BASE`:
   - `env.SECRET_KEY_BASE` or `secret.data.SECRET_KEY_BASE`
   - Keep stable across restarts/upgrades, or sessions/tokens become invalid.
+- `REDIS_URL`:
+  - Optional, but required when `persistence.enabled=false`
+  - If omitted, DocuSeal starts an embedded Redis inside the app container and persists it under `WORKDIR`
 - General:
   - `general.forceSsl` -> `FORCE_SSL`
   - `general.host` -> `HOST`
@@ -159,14 +174,15 @@ This chart intentionally fails render for unsafe or ambiguous setups, including:
 - insecure placeholder secrets (`change-me`)
 - multiple storage backends enabled simultaneously
 - `replicaCount > 1` with PVC + non-RWX storage
-- `replicaCount > 1` with `persistence.enabled=false` and no shared object storage backend (`s3/gcs/azure`)
+- `persistence.enabled=false` without shared object storage (`s3/gcs/azure`)
+- `persistence.enabled=false` without `REDIS_URL`
 - missing required fields for enabled SMTP/storage providers
 
 Default security/runtime posture:
 
 - Container runs as non-root UID/GID `2000` by default (`runAsNonRoot=true`, `runAsUser=2000`, `runAsGroup=2000`).
 - Pod `fsGroup` defaults to `2000` so mounted volumes are writable by the app user.
-- Default PVC mount path is `/app/tmp`, which aligns with DocuSeal runtime disk writes.
+- Default PVC mount path is `/data/docuseal`, which aligns with upstream `WORKDIR` and local Redis/attachment storage.
 
 Operational note for external secret rotation:
 
@@ -181,7 +197,8 @@ NetworkPolicy note:
 ## Recommended Production Patterns
 
 - Use existing Kubernetes Secrets for all credentials.
-- Use S3/GCS/Azure object storage with `persistence.enabled=false` for HA.
+- Keep `persistence.enabled=true` unless you are also supplying external Redis with `REDIS_URL`.
+- Pair S3/GCS/Azure with the PVC for durable local Redis plus durable file storage.
 - Set `replicaCount >= 2` only when shared storage model is in place.
 - Enable TLS at ingress/gateway layer and set `general.forceSsl=true`.
 - Keep `SECRET_KEY_BASE` stable and rotate deliberately.
